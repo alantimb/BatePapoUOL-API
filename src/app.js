@@ -119,15 +119,6 @@ app.get("/messages", async (req, res) => {
   const limit = req.query.limit;
   const { user } = req.headers;
 
-  // const messageTypes = {
-  //   $or: [
-  //     { type: "status" },
-  //     { type: "message" },
-  //     { type: "private_message", to: user },
-  //     { type: "private_message", from: user },
-  //   ],
-  // };
-
   try {
     if (!user) return res.sendStatus(422);
 
@@ -152,13 +143,6 @@ app.get("/messages", async (req, res) => {
     } else {
       res.sendStatus(422);
     }
-    // if (limit !== null && (limit <= 0 || isNaN(limit))) {
-    //   res.sendStatus(422);
-    // } else if (limit > 0) {
-    //   res.send(showMessages.slice(-limit));
-    // } else {
-    //   res.status(200).send(showMessages);
-    // }
   } catch (err) {
     return res.status(422).send(err.message);
   }
@@ -167,19 +151,29 @@ app.get("/messages", async (req, res) => {
 app.post("/status", async (req, res) => {
   const { user } = req.header;
 
+  if (!user) {
+    res.status(422);
+  }
+
   const participantUser = await db
     .collection("participants")
     .findOne({ name: user });
 
-  if (!participantUser) {
-    res.sendStatus(404);
+  if (participantUser) {
+    res.sendStatus(201);
   } else {
+    res.sendStatus(404);
+  }
+
+  try {
     await db
       .collection("participants")
       .updateOne({ name: user }, { $set: { lastStatus: Date.now() } });
-  }
 
-  res.sendStatus(200);
+    res.sendStatus(200);
+  } catch (err) {
+    res.sendStatus(422);
+  }
 });
 
 const PORT = 5000;
