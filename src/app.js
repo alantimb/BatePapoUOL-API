@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { MongoClient, MongoClient, ObjectId } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import dotenv from "dotenv";
 import joi from "joi";
 import dayjs from "dayjs";
@@ -30,7 +30,9 @@ app.post("/participants", async (req, res) => {
   const validation = userSchema.validate(name);
 
   if (validation.error) {
-    res.sendStatus(422);
+    res
+      .status(422)
+      .send("Nome em formato inválido!\nPor favor, tente novamente.");
   }
 
   try {
