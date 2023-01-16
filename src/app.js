@@ -111,29 +111,36 @@ app.post("/messages", async (req, res) => {
 
     return res.sendStatus(201);
   } catch (err) {
-    return res.status(500).send(err.message);
+    return res.status(422).send(err.message);
   }
 });
 
 app.get("/messages", async (req, res) => {
   const limit = parseInt(req.query.limit);
-  const user = req.headers.user;
+  const { user } = req.headers;
 
-  const messageTypes = {
-    $or: [
-      { type: "status" },
-      { type: "message" },
-      { type: "private_message", to: user },
-      { type: "private_message", from: user },
-    ],
-  };
+  // const messageTypes = {
+  //   $or: [
+  //     { type: "status" },
+  //     { type: "message" },
+  //     { type: "private_message", to: user },
+  //     { type: "private_message", from: user },
+  //   ],
+  // };
 
   try {
-    if (!user) return res.sendStatus(422);
+    // if (!user) return res.sendStatus(422);
 
     const showMessages = await db
       .collection("messages")
-      .find(messageTypes)
+      .find({
+        $or: [
+          { type: "status" },
+          { type: "message" },
+          { to: user, type: "private_message" },
+          { from: user, type: "private_message" },
+        ],
+      })
       .toArray();
 
     if (limit <= 0 || isNaN(limit)) {
