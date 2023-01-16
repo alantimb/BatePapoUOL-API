@@ -23,6 +23,11 @@ try {
 db = mongoClient.db();
 
 const userSchema = joi.object({ name: joi.string().required() });
+const messageSchema = joi.object({
+  to: joi.string().min(1).required(),
+  text: joi.string().min(1).required(),
+  type: joi.string().valid("message", "private_message").required(),
+});
 
 app.post("/participants", async (req, res) => {
   const { name } = req.body;
@@ -75,20 +80,16 @@ app.post("/messages", async (req, res) => {
   const from = req.headers.user;
   const timeNow = dayjs().format("HH:mm:ss");
 
-  const messageSchema = joi.object({
-    to: joi.string().required(),
-    text: joi.string().required(),
-    type: joi.string().valid("message", "private_message").required(),
-    from: joi.string().required(),
-  });
   const validation = messageSchema.validate(
     { to: to, text: text, type: type },
     { abortEarly: false }
   );
 
   if (validation.error) {
-    const errors = validation.error.details.map((detail) => detail.message);
-    res.status(422).send(errors);
+    const errors = validation.error.details.map((detail) => {
+      detail.message;
+    });
+    res.status(422).send("erro aqui oh");
   }
 
   const participantOn = await db
@@ -96,7 +97,7 @@ app.post("/messages", async (req, res) => {
     .findOne({ name: from });
 
   if (!participantOn) {
-    res.sendStatus(422);
+    res.status(422).send("o erro eh aqui");
   }
 
   try {
