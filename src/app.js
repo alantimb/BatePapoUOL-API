@@ -112,5 +112,35 @@ app.post("/messages", async (req, res) => {
   }
 });
 
+app.get("/messages", async (req, res) => {
+  const limit = parseInt(req.query.limit);
+  const user = req.headers.user;
+
+  const messageTypes = {
+    $or: [
+      { type: "status" },
+      { type: "message" },
+      { type: "private_message", to: user },
+      { type: "private_message", from: user },
+    ],
+  };
+
+  try {
+    if (!user) return res.sendStatus(422);
+
+    const showMessages = await messagesCollection.find(messageTypes).toArray();
+
+    if (limit <= 0 || isNaN(limit)) {
+      res.sendStatus(422);
+    } else if (limit > 0) {
+      res.send(showMessages.slice(-limit).reverse());
+    } else {
+      res.send(showMessages.reverse());
+    }
+  } catch (err) {
+    return res.status(422).send(err.message);
+  }
+});
+
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running in port: ${PORT}`));
