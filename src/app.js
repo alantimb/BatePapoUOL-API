@@ -1,12 +1,13 @@
 import express from "express";
 import cors from "cors";
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import joi from "joi";
 import dayjs from "dayjs";
 
-const app = express();
 dotenv.config();
+
+const app = express();
 app.use(cors());
 app.use(express.json());
 
@@ -21,11 +22,12 @@ try {
 
 db = mongoClient.db();
 
+const userSchema = joi.object({ name: joi.string().required() });
+
 app.post("/participants", async (req, res) => {
   const { name } = req.body;
   const timeNow = dayjs().format("HH:mm:ss");
-  const userSchema = joi.object({ name: joi.string().required() });
-  const validation = userSchema.validate(name);
+  const validation = userSchema.validate({ name }, { abortEarly: false });
 
   if (validation.error) {
     res.status(422).send(validation.error.details);
@@ -136,9 +138,9 @@ app.get("/messages", async (req, res) => {
     if (limit <= 0 || isNaN(limit)) {
       res.sendStatus(422);
     } else if (limit > 0) {
-      res.send(showMessages.slice(-limit).reverse());
+      res.send(showMessages.slice(-limit));
     } else {
-      res.send(showMessages.reverse());
+      res.send(showMessages);
     }
   } catch (err) {
     return res.status(422).send(err.message);
