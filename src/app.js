@@ -23,7 +23,7 @@ db = mongoClient.db();
 const participantsCollection = db.collection("participants");
 const messagesCollection = db.collection("messages");
 
-app.post("/participantes", async (req, res) => {
+app.post("/participants", async (req, res) => {
   const { name } = req.body;
   const timeNow = dayjs().format("HH:mm:ss");
   const userSchema = joi.object({ name: joi.string().required() });
@@ -36,7 +36,10 @@ app.post("/participantes", async (req, res) => {
   try {
     const resp = await db.collection("participants").findOne({ name: name });
 
-    if (resp) return res.status(409).send("Esse nome já existe!");
+    if (resp)
+      return res
+        .status(409)
+        .send("Esse nome já está em uso!\nPor favor, tente um diferente.");
 
     await participantsCollection.insertOne({
       name: name,
@@ -52,6 +55,16 @@ app.post("/participantes", async (req, res) => {
     });
 
     return res.sendStatus(201);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+});
+
+app.get("/participants", async (req, res) => {
+  try {
+    const resp = await participantsCollection.find().toArray();
+
+    return res.status(201).send(resp);
   } catch (err) {
     return res.status(500).send(err.message);
   }
