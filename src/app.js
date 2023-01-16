@@ -116,7 +116,7 @@ app.post("/messages", async (req, res) => {
 });
 
 app.get("/messages", async (req, res) => {
-  const limit = parseInt(req.query.limit);
+  const limit = req.query.limit;
   const { user } = req.headers;
 
   // const messageTypes = {
@@ -129,7 +129,7 @@ app.get("/messages", async (req, res) => {
   // };
 
   try {
-    // if (!user) return res.sendStatus(422);
+    if (!user) return res.sendStatus(422);
 
     const showMessages = await db
       .collection("messages")
@@ -143,13 +143,22 @@ app.get("/messages", async (req, res) => {
       })
       .toArray();
 
-    if (limit <= 0 || isNaN(limit)) {
-      res.sendStatus(422);
-    } else if (limit > 0) {
+    if (!limit) {
+      res.status(200).send(showMessages);
+    }
+
+    if (limit > 0 && parseInt(limit) !== "NaN") {
       res.send(showMessages.slice(-limit));
     } else {
-      res.send(showMessages);
+      res.sendStatus(422);
     }
+    // if (limit !== null && (limit <= 0 || isNaN(limit))) {
+    //   res.sendStatus(422);
+    // } else if (limit > 0) {
+    //   res.send(showMessages.slice(-limit));
+    // } else {
+    //   res.status(200).send(showMessages);
+    // }
   } catch (err) {
     return res.status(422).send(err.message);
   }
