@@ -149,23 +149,23 @@ app.get("/messages", async (req, res) => {
 });
 
 app.post("/status", async (req, res) => {
-  const { user } = req.header;
+  const user = req.header.user;
 
   if (!user) {
     res.status(422);
   }
 
-  const participantUser = await db
-    .collection("participants")
-    .findOne({ name: user });
-
-  if (participantUser) {
-    res.sendStatus(201);
-  } else {
-    res.sendStatus(404);
-  }
-
   try {
+    const participantUser = await db
+      .collection("participants")
+      .findOne({ name: user });
+
+    if (!participantUser) {
+      res.sendStatus(404);
+    } else {
+      res.sendStatus(201);
+    }
+
     await db
       .collection("participants")
       .updateOne({ name: user }, { $set: { lastStatus: Date.now() } });
