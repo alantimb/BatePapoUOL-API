@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import dotenv from "dotenv";
 import joi from "joi";
 import dayjs from "dayjs";
@@ -149,32 +149,25 @@ app.post("/status", async (req, res) => {
 });
 
 setInterval(async () => {
-  const pastTime = Date.now() - 10000;
-  const timeNow = dayjs().format("HH:mm:ss");
-
   try {
+    const pastTime = Date.now() - 10000;
+
     const inactiveUsers = await db
       .collection("participants")
-      .find({ lastStatus: { $gte: pastTime } })
+      .find({ lastStatus: { $lt: pastTime } })
       .toArray();
 
-    if (inactiveUsers.length > 0) {
-      await db.collection("messages").insertMany(
-        inactiveUsers.map((user) => {
-          return {
-            from: user.name,
-            to: "Todos",
-            text: "sai da sala...",
-            type: "status",
-            time: timeNow,
-          };
-        })
-      );
-
-      await db
-        .collection("participants")
-        .deleteMany({ lastStatus: { $gte: pastTime } });
-    }
+    inactiveUsers.map(async (user) => {
+      await db.collection("participants").deleteOne({ _id: ObjectId(user.id) });
+      const messageExit = {
+        from: user.name,
+        to: "Todos",
+        text: "sai da sala...",
+        type: "status",
+        time: dayjs().format("HH:mm:ss"),
+      };
+      await db.collection("messages").insertOne(messageExit);
+    });
   } catch (err) {
     res.sendStatus(500);
   }
