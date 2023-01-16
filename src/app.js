@@ -20,8 +20,6 @@ try {
 }
 
 db = mongoClient.db();
-const participantsCollection = db.collection("participants");
-const messagesCollection = db.collection("messages");
 
 app.post("/participants", async (req, res) => {
   const { name } = req.body;
@@ -41,12 +39,12 @@ app.post("/participants", async (req, res) => {
         .status(409)
         .send("Esse nome já está em uso!\nPor favor, tente um diferente.");
 
-    await participantsCollection.insertOne({
+    await db.collection("participants").insertOne({
       name: name,
       lastStatus: Date.now(),
     });
 
-    await messagesCollection.insertOne({
+    await db.collection("messages").insertOne({
       from: name,
       to: "Todos",
       text: "entra na sala...",
@@ -62,7 +60,7 @@ app.post("/participants", async (req, res) => {
 
 app.get("/participants", async (req, res) => {
   try {
-    const resp = await participantsCollection.find().toArray();
+    const resp = await db.collection("participants").find().toArray();
 
     return res.status(201).send(resp);
   } catch (err) {
@@ -91,14 +89,16 @@ app.post("/messages", async (req, res) => {
     res.status(422).send(errors);
   }
 
-  const participantOn = await participantsCollection.findOne({ name: from });
+  const participantOn = await db
+    .collection("participants")
+    .findOne({ name: from });
 
   if (!participantOn) {
     res.sendStatus(422);
   }
 
   try {
-    await messagesCollection.insertOne({
+    await db.collection("messages").insertOne({
       from: from,
       to: to,
       text: text,
@@ -128,7 +128,10 @@ app.get("/messages", async (req, res) => {
   try {
     if (!user) return res.sendStatus(422);
 
-    const showMessages = await messagesCollection.find(messageTypes).toArray();
+    const showMessages = await db
+      .collection("messages")
+      .find(messageTypes)
+      .toArray();
 
     if (limit <= 0 || isNaN(limit)) {
       res.sendStatus(422);
@@ -140,6 +143,24 @@ app.get("/messages", async (req, res) => {
   } catch (err) {
     return res.status(422).send(err.message);
   }
+});
+
+app.post("/status", async (req, res) => {
+  const { user } = req.header;
+
+  const participantUser = await db
+    .collection("participants")
+    .findOne({ name: user });
+
+  if (!participantUser) {
+    res.sendStatus(404);
+  } else {
+    await db
+      .collection("participants")
+      .updateOne({ name: user }, { $set: { lastStatus: Date.now() } });
+  }
+
+  res.sendStatus(200);
 });
 
 const PORT = 5000;
