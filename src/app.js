@@ -121,7 +121,6 @@ app.get("/messages", async (req, res) => {
   const { user } = req.headers;
 
   try {
-    if (!user) return res.sendStatus(422);
 
     const showMessages = await db
       .collection("messages")
@@ -133,7 +132,7 @@ app.get("/messages", async (req, res) => {
           { to: "Todos" },
           { from: user },
         ],
-      })
+      }).limit(number(limit))
       .toArray();
 
     if (!limit) {
