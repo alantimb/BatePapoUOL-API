@@ -119,19 +119,23 @@ app.post("/messages", async (req, res) => {
 app.get("/messages", async (req, res) => {
   const limit = req.query.limit;
   const { user } = req.headers;
+
   try {
     if (!user) return res.sendStatus(422);
+
     const showMessages = await db
       .collection("messages")
       .find({
         $or: [
           { type: "status" },
           { type: "message" },
-          { to: user, type: "private_message" },
-          { from: user, type: "private_message" },
+          { to: user },
+          { to: "Todos" },
+          { from: user },
         ],
       })
       .toArray();
+
     if (!limit) {
       res.status(200).send(showMessages);
     }
@@ -151,7 +155,9 @@ app.post("/status", async (req, res) => {
   console.log(user);
 
   try {
-    const participantUser = await db.collection("participants").findOne({ name: user })
+    const participantUser = await db
+      .collection("participants")
+      .findOne({ name: user });
 
     await db
       .collection("participants")
