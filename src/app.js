@@ -168,31 +168,29 @@ app.post("/status", async (req, res) => {
 });
 
 setInterval(async () => {
-  try {
-    const pastTime = Date.now() - 10000;
+  const pastTime = Date.now() - 10000;
 
+  try {
     const inactiveUsers = await db
       .collection("participants")
       .find({ lastStatus: { $lte: pastTime } })
       .toArray();
 
-    if (inactiveUsers > 0) {
-      inactiveUsers.map(async (user) => {
-        await db
-          .collection("participants")
-          .deleteOne({ _id: ObjectId(user.id) });
-        const messageExit = {
-          from: user.name,
-          to: "Todos",
-          text: "sai da sala...",
-          type: "status",
-          time: dayjs().format("HH:mm:ss"),
-        };
+    inactiveUsers.map(async (user) => {
+      await db
+        .collection("participants")
+        .deleteOne({ lastStatus: { $lte: pastTime } });
+      const messageExit = {
+        from: user.name,
+        to: "Todos",
+        text: "sai da sala...",
+        type: "status",
+        time: dayjs().format("HH:mm:ss"),
+      };
 
-        console.log(user.id, user.name);
-        await db.collection("messages").insertOne(messageExit);
-      });
-    }
+      console.log(user.id, user.name);
+      await db.collection("messages").insertOne(messageExit);
+    });
   } catch (err) {
     res.sendStatus(500);
   }
