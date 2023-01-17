@@ -81,7 +81,6 @@ app.post("/messages", async (req, res) => {
   const { to, text, type } = req.body;
   const { user } = req.headers;
   const timeNow = dayjs().format("HH:mm:ss");
-  console.log(user + "13");
 
   const validation = messageSchema.validate(
     { to: to, text: text, type: type },
@@ -150,8 +149,6 @@ app.get("/messages", async (req, res) => {
 app.post("/status", async (req, res) => {
   const { user } = req.headers;
 
-  console.log(user);
-
   try {
     const participantUser = await db
       .collection("participants")
@@ -192,14 +189,14 @@ setInterval(async () => {
           time: dayjs().format("HH:mm:ss"),
         };
 
-        console.log(user.id, user.name)
+        console.log(user.id, user.name);
         await db.collection("messages").insertOne(messageExit);
       });
     }
   } catch (err) {
     res.sendStatus(500);
   }
-});
+}, 15000);
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running in port: ${PORT}`));
