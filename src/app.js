@@ -176,7 +176,7 @@ setInterval(async () => {
 
     const inactiveUsers = await db
       .collection("participants")
-      .find({ lastStatus: { $lt: pastTime } })
+      .find({ lastStatus: { pastTime } })
       .toArray();
 
     inactiveUsers.map(async (user) => {
