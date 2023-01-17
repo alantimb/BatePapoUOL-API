@@ -132,7 +132,7 @@ app.get("/messages", async (req, res) => {
           { to: "Todos" },
           { from: user },
         ],
-      }).limit(number(limit))
+      })
       .toArray();
 
     if (!limit) {
