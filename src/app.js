@@ -104,7 +104,7 @@ app.post("/messages", async (req, res) => {
   }
   try {
     await db.collection("messages").insertOne({
-      name: user,
+      from: user,
       to: to,
       text: text,
       type: type,
@@ -127,9 +127,9 @@ app.get("/messages", async (req, res) => {
         $or: [
           { type: "status" },
           { type: "message" },
+          { from: user },
           { to: user },
           { to: "Todos" },
-          { from: user },
         ],
       })
       .toArray();
