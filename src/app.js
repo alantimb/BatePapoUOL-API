@@ -176,20 +176,26 @@ setInterval(async () => {
 
     const inactiveUsers = await db
       .collection("participants")
-      .find({ lastStatus: { pastTime } })
+      .find({ lastStatus: { $lte: pastTime } })
       .toArray();
 
-    inactiveUsers.map(async (user) => {
-      await db.collection("participants").deleteOne({ _id: ObjectId(user.id) });
-      const messageExit = {
-        from: user.name,
-        to: "Todos",
-        text: "sai da sala...",
-        type: "status",
-        time: dayjs().format("HH:mm:ss"),
-      };
-      await db.collection("messages").insertOne(messageExit);
-    });
+    if (inactiveUsers > 0) {
+      inactiveUsers.map(async (user) => {
+        await db
+          .collection("participants")
+          .deleteOne({ _id: ObjectId(user.id) });
+        const messageExit = {
+          from: user.name,
+          to: "Todos",
+          text: "sai da sala...",
+          type: "status",
+          time: dayjs().format("HH:mm:ss"),
+        };
+
+        console.log(user.id, user.name)
+        await db.collection("messages").insertOne(messageExit);
+      });
+    }
   } catch (err) {
     res.sendStatus(500);
   }
