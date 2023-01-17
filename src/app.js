@@ -170,30 +170,30 @@ app.post("/status", async (req, res) => {
   }
 });
 
-// setInterval(async () => {
-//   try {
-//     const pastTime = Date.now() - 10000;
+setInterval(async () => {
+  try {
+    const pastTime = Date.now() - 10000;
 
-//     const inactiveUsers = await db
-//       .collection("participants")
-//       .find({ lastStatus: { $lt: pastTime } })
-//       .toArray();
+    const inactiveUsers = await db
+      .collection("participants")
+      .find({ lastStatus: { $lt: pastTime } })
+      .toArray();
 
-//     inactiveUsers.map(async (user) => {
-//       await db.collection("participants").deleteOne({ _id: ObjectId(user.id) });
-//       const messageExit = {
-//         from: user.name,
-//         to: "Todos",
-//         text: "sai da sala...",
-//         type: "status",
-//         time: dayjs().format("HH:mm:ss"),
-//       };
-//       await db.collection("messages").insertOne(messageExit);
-//     });
-//   } catch (err) {
-//     res.sendStatus(500);
-//   }
-// });
+    inactiveUsers.map(async (user) => {
+      await db.collection("participants").deleteOne({ _id: ObjectId(user.id) });
+      const messageExit = {
+        from: user.name,
+        to: "Todos",
+        text: "sai da sala...",
+        type: "status",
+        time: dayjs().format("HH:mm:ss"),
+      };
+      await db.collection("messages").insertOne(messageExit);
+    });
+  } catch (err) {
+    res.sendStatus(500);
+  }
+});
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running in port: ${PORT}`));
